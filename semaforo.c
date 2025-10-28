@@ -35,26 +35,51 @@ int main(){
 
     *contador_compartilhado = 0;
 
-    //sem_open("/semaforo", O_CREAT, 0644, 1);
+    sem_t *semaforo; // Declaração
+    const char *nome_semaforo = "/meu_semaforo";
+
+    semaforo = sem_open(nome_semaforo, O_CREAT, 0644, 1);
+    if (semaforo == SEM_FAILED) {
+        perror("sem_open failed");
+        exit(1);
+    }
+
     pid_t pid_filho = fork();
     if(pid_filho == -1){
         perror("Deu tudo errado no fork!");
     }else if (pid_filho == 0){
         printf("----Temos o processo filho!----\n");
         for (int i = 0; i < 100000; i++){
+            sem_wait(semaforo);
             (*contador_compartilhado)++;
+            sem_post(semaforo);
         }
         printf("O valor do contador é: %d\n", *contador_compartilhado);
+        if (shmdt(contador_compartilhado) == -1) {
+            perror("shmdt failed");
+            exit(1);
+        }
+
+        sem_close(semaforo);
     }else{
         printf("\n---------Temos o processo pai!--------\n");
         for (int i = 0; i < 100000; i++){
+            sem_wait(semaforo);
             (*contador_compartilhado)++;
+            sem_post(semaforo);
         }
         wait(NULL);
         printf("O valor do contador é: %d\n", *contador_compartilhado);
 
         if (shmdt(contador_compartilhado) == -1) {
             perror("shmdt failed");
+            exit(1);
+        }
+
+        sem_unlink(nome_semaforo);
+        sem_close(semaforo);
+        if (shmctl(shmid, IPC_RMID, NULL) == -1) {
+            perror("shmctl failed");
             exit(1);
         }
     }
