@@ -96,4 +96,12 @@ int main(){
      * semáforos para garantir que apenas um processo possa
      * acessar e modificar o contador compartilhado de cada vez.
      */
+
+     /**
+      * Com a implementação dos semáforos, o código agora garante
+      * que apenas um processo (pai ou filho) possa acessar e
+      * modificar o contador compartilhado de cada vez. Isso
+      * elimina a condição de corrida e assegura que o valor
+      * final do contador seja consistente e esperado (200000).
+      */
 }
